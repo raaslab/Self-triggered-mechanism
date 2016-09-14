@@ -1,5 +1,15 @@
+%function [x_hat_tplus1, y_hat_tplus1, Sigma_hat_tplus1, x_true, y_true] = KF (...
+%x_hat_t, y_hat_t, Sigma_hat_t, Xr, Yr, ID, t)
 function [x_hat_tplus1, y_hat_tplus1, Sigma_hat_tplus1, x_true, y_true] = KF (...
-    x_hat_t, y_hat_t, Sigma_hat_t, Xr, Yr, t)
+x_hat_t, y_hat_t, Sigma_hat_t, Xr, Yr, t)
+
+% ID is a vector of the same length as Xr and Yr
+% and gives the identity of the robots in Xr and Yr
+% e.g., ID can be [1; 2; 3] when Xr and Yr denote
+% the position of the first, second and third robots.
+% ID will be [1; 2; 3; 4; 5] when Xr and Yr denotes
+% the position of all five robots, etc.
+
 
 % Assume object is moving on a circle
 % Its true position at any time t is given by:
@@ -7,12 +17,12 @@ function [x_hat_tplus1, y_hat_tplus1, Sigma_hat_tplus1, x_true, y_true] = KF (..
 % where Omega = angular rate, user-defined parameter
 % and [xc,yc] = center of the circle, user-defined parameter
 
-Omega = 10;
+Omega = 100;
 xc = 4 - cos(0); 
 yc = 20 - sin(0);
 
-x_true = cos(t/Omega) + xc;
-y_true = sin(t/Omega) + yc;
+x_true = cos((t-1)/Omega) + xc;
+y_true = sin((t-1)/Omega) + yc;
 
 % Simulate measurements for each robot
 % We assume distance measurements
@@ -73,6 +83,5 @@ Sigma_hat_tplus1 = (eye(2)-K*H)*Sigma_hat_tplus1_minus*(eye(2)-K*H)' + K*R*K';
 
 x_hat_tplus1 = X_hat_tplus1(1);
 y_hat_tplus1 = X_hat_tplus1(2);
-
 
 end
