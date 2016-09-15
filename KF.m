@@ -1,7 +1,5 @@
-%function [x_hat_tplus1, y_hat_tplus1, Sigma_hat_tplus1, x_true, y_true] = KF (...
-%x_hat_t, y_hat_t, Sigma_hat_t, Xr, Yr, ID, t)
 function [x_hat_tplus1, y_hat_tplus1, Sigma_hat_tplus1, x_true, y_true] = KF (...
-x_hat_t, y_hat_t, Sigma_hat_t, Xr, Yr, t)
+    x_hat_t, y_hat_t, Sigma_hat_t, Xr, Yr, ID, t)
 
 % ID is a vector of the same length as Xr and Yr
 % and gives the identity of the robots in Xr and Yr
@@ -32,8 +30,15 @@ y_true = sin((t-1)/Omega) + yc;
 
 sigma_z = 0.2;  % std in noise
 
+% Generate noise first
+% To ensure consistency, we use time t as the seed
+% so all the noise values at a given time instance are the same
+rng(t);
+noise = sigma_z*randn(1000,1);    % assuming no more than 1000 robots
+
+
 for i = 1 : length(Xr)  % for all the robots
-    Z(i) = norm([Xr(i)-x_true; Yr(i)-y_true]) + sigma_z*randn(1,1);
+    Z(i) = norm([Xr(i)-x_true; Yr(i)-y_true]) + noise(ID(i));
     %plotCircle([Xr(i); Yr(i)],Z(i),0,[0 1 0]);
 end
 
