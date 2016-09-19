@@ -28,7 +28,7 @@ y_true = sin((t-1)/Omega) + yc;
 % noise is zero-mean Gaussian with variance sigma_z^2
 % where sigma_z is a user-defined parameter 
 
-sigma_z = 0.2*1;  % std in noise
+sigma_z = 0.2;  % std in noise
 
 % Generate noise first
 % To ensure consistency, we use time t as the seed
