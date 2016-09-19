@@ -1,6 +1,6 @@
 N=6; %the number of sensor agents
 T=0.1; % sampling period
-max_step=1600;
+max_step=800;
 omega_max=1; %maximum angular velocity for each sensor agent
 
 %cross point of the boundary
@@ -56,6 +56,11 @@ end
 %     4, 20, Sigma_hat(1:2,1:2), px(:,1), py(:,1), 1);
 % theta(:,1)=[(itheta(N,1)-360);itheta(:,1);(itheta(1,1)+360)]; %virtual agent 0th:=agent N-2pi;virtual agent 7th:=agent 1st+ 2pi
 
+%Set up the movie.
+writerObj = VideoWriter('periKFcentra.avi'); % Name it.
+writerObj.FrameRate = 60; % How many frames per second.
+open(writerObj); 
+
 for k=1:max_step
     
     % take new measurement and update the target estimate at k+1
@@ -80,6 +85,8 @@ for k=1:max_step
     itheta(:,k+1)=orderlythetafun(itheta(:,k+1));
     theta(:,k+1)=[(itheta(N,k+1)-360);itheta(:,k+1);(itheta(1,k+1)+360)];
     
+    
+
     % %/////////
     % %Plot the robots
     % subplot(1,2,1)
@@ -139,8 +146,16 @@ for k=1:max_step
     end
     pause(0.01);
     %%--------------------------------------------------
-    
+    %if mod(i,4)==0, % Uncomment to take 1 out of every 4 frames.
+        frame = getframe(gcf); % 'gcf' can handle if you zoom in to take a movie.
+        writeVideo(writerObj, frame);
+    %end
+        
+   
 end
+hold  off
+close(writerObj); % Saves the movie.
+
 
 for k=1:max_step
     for i=1:N
@@ -159,5 +174,7 @@ end
 
 %plot(sum(P)), hold on
 %plot(sum(Con)),hold on
+
+
 
 
