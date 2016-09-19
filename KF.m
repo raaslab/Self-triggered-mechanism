@@ -16,7 +16,7 @@ function [x_hat_tplus1, y_hat_tplus1, Sigma_hat_tplus1, x_true, y_true] = KF (..
 % and [xc,yc] = center of the circle, user-defined parameter
 
 Omega = 100;
-xc = 4 - cos(0); 
+xc = 4 - cos(0);
 yc = 20 - sin(0);
 
 x_true = cos((t-1)/Omega) + xc;
@@ -28,7 +28,7 @@ y_true = sin((t-1)/Omega) + yc;
 % noise is zero-mean Gaussian with variance sigma_z^2
 % where sigma_z is a user-defined parameter 
 
-sigma_z = 0.2;  % std in noise
+sigma_z = 0.2*1;  % std in noise
 
 % Generate noise first
 % To ensure consistency, we use time t as the seed
