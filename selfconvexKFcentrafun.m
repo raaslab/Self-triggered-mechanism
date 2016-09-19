@@ -1,6 +1,7 @@
-N=6; %the number of sensor agents 
+function [Con]= selfconvexKFcentrafun(N,initheta,maxstep)
+%N=6; %the number of sensor agents 
 T=0.1; % sampling period
-max_step=2000;
+max_step=maxstep;
 omega_max=1; %maximum angular velocity for each sensor agent
 delta=0.06;
 
@@ -32,7 +33,7 @@ gVimid=zeros(N,max_step); %the midepoint of i's guaranteed Voronoi set
 u=zeros(N,max_step);
 
 
-itheta(:,1)=round(sort(360*rand(N,1)));% initial locations of six sensor agents, counterclosewise order
+itheta(:,1)=initheta;% initial locations of six sensor agents, counterclosewise order
 theta(:,1)=[(itheta(N,1)-360);itheta(:,1);(itheta(1,1)+360)]; %virtual agent 0th:=agent N-2pi;virtual agent 7th:=agent 1st+ 2pi
 %temptheta=round(sort(360*rand(N,1)));
 %itheta(:,1)=temptheta;
@@ -95,13 +96,14 @@ count=ones(N,1);
 
 for k=2: max_step
    [tarx_hat(1,k+1), tary_hat(1,k+1), Sigma_hat(1:2, (2*(k+1)-1):(2*(k+1))), tarxtrue(1,k), tarytrue(1,k)] = KF (...
-tarx_hat(1,k), tary_hat(1,k), Sigma_hat(1:2,(2*k-1): 2*k), px(:,k), py(:,k),id, k);
+tarx_hat(1,k), tary_hat(1,k), Sigma_hat(1:2,(2*k-1): 2*k), px(:,k), py(:,k), id, k);
     
     for i=1:N
          
           ubdi=omega_max*T*count(i)/2; %upper bound
           r=omega_max*T*count(i); % the prediciton range of neighbors' motion
           gVimid(i,k)=1/4*(R(2*i,k)+2*itheta(i,k)+R(2*i-1,k)); % the midepoint of i's guaranteed Voronoi set 
+          
           
           errp=gVimid(i,k)-itheta(i,k); 
           abserrp=abs(gVimid(i,k)-itheta(i,k));
@@ -142,7 +144,7 @@ tarx_hat(1,k), tary_hat(1,k), Sigma_hat(1:2,(2*k-1): 2*k), px(:,k), py(:,k),id, 
           end    
                
     end
-    itheta(:,k+1)=orderlythetafun(itheta(:,k+1));
+     itheta(:,k+1)=orderlythetafun(itheta(:,k+1));
     theta(:,k+1)=[(itheta(N,k+1)-360);itheta(:,k+1);(itheta(1,k+1)+360)];
     
 %     % Plot the robots
@@ -161,47 +163,47 @@ tarx_hat(1,k), tary_hat(1,k), Sigma_hat(1:2,(2*k-1): 2*k), px(:,k), py(:,k),id, 
 %     
 %      subplot(1,2,2)
 %%%//////*********************************
-% figure(2); 
-cla; hold on;axis equal
-%plot the boundary
-x1=3:0.1:8;
-y1=2*x1+1; %line 1
-plot(x1,y1)
-hold on
-
-x2=5:0.1:8;
-y2=-3*x2+41; %line 2
-%  figure(2);
-plot(x2,y2) 
-hold on
-
-x3=1:0.1:5;
-y3=x3+21; %line 3
-%  figure(2);
-plot(x3,y3) 
-hold on 
-
-x4=1:0.1:3;
-y4=-7.5*x4+29.5; %line 4
-%  figure(2);
-plot(x4,y4)
-hold on
- 
-% figure(2);
-%plot(4,20,'*'), hold on
-
-    for i = 1 : size(itheta,1)
-%        figure(2);
-    %h(1) = covarianceEllipse([x_hat;y_hat],Sigma_hat,[1 0 0],11.82);
-    %h(2) = plot(x_hat,y_hat,'rs','MarkerSize',8);
-    %h(3) = plot(x_true,y_true,'bp','MarkerSize',8);
-       h(1)=plot(px(i,k), py(i,k),'ro','MarkerFaceColor','r');
-       h(2) = covarianceEllipse([tarx_hat(1,k);tary_hat(1,k)],Sigma_hat(1:2,(2*k-1):2*k),[1 0 0],11.82);
-       h(3)=plot(tarx_hat(1,k),tary_hat(1,k),'rs','MarkerSize',8);
-       h(4)=plot(tarxtrue(1,k),tarytrue(1,k),'bp','MarkerSize',8);
-       h(5)=plot ([px(i,k) tarx_hat(1,k)], [py(i,k) tary_hat(1,k)],':');
-    end
-    pause(0.01);
+% % figure(2); 
+% cla; hold on;axis equal
+% %plot the boundary
+% x1=3:0.1:8;
+% y1=2*x1+1; %line 1
+% plot(x1,y1)
+% hold on
+% 
+% x2=5:0.1:8;
+% y2=-3*x2+41; %line 2
+% %  figure(2);
+% plot(x2,y2) 
+% hold on
+% 
+% x3=1:0.1:5;
+% y3=x3+21; %line 3
+% %  figure(2);
+% plot(x3,y3) 
+% hold on 
+% 
+% x4=1:0.1:3;
+% y4=-7.5*x4+29.5; %line 4
+% %  figure(2);
+% plot(x4,y4)
+% hold on
+%  
+% % figure(2);
+% %plot(4,20,'*'), hold on
+% 
+%     for i = 1 : size(itheta,1)
+% %        figure(2);
+%     %h(1) = covarianceEllipse([x_hat;y_hat],Sigma_hat,[1 0 0],11.82);
+%     %h(2) = plot(x_hat,y_hat,'rs','MarkerSize',8);
+%     %h(3) = plot(x_true,y_true,'bp','MarkerSize',8);
+%        h(1)=plot(px(i,k), py(i,k),'ro','MarkerFaceColor','r');
+%        h(2) = covarianceEllipse([tarx_hat(1,k);tary_hat(1,k)],Sigma_hat(1:2,(2*k-1):2*k),[1 0 0],11.82);
+%        h(3)=plot(tarx_hat(1,k),tary_hat(1,k),'rs','MarkerSize',8);
+%        h(4)=plot(tarxtrue(1,k),tarytrue(1,k),'bp','MarkerSize',8);
+%        h(5)=plot ([px(i,k) tarx_hat(1,k)], [py(i,k) tary_hat(1,k)],':');
+%     end
+%     pause(0.01);
  %///************************************************************   
  end
 
@@ -227,4 +229,4 @@ end
 % figure; hold on;
 % for i = 1 : N
 % A=find(C(i,:)>0);plot(A,i*ones(length(A)),'ro')
-% end
+ end
