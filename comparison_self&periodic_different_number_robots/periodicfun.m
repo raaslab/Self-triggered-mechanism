@@ -1,7 +1,7 @@
 function [convtime,consumswitch,consumabsu,sumwongdir] = periodicfun(N,initheta,convthresh)
 
-T=0.1; % sampling period
-max_step=1600;
+T=0.5; % sampling period
+max_step=2000;
 omega_max=1; %maximum angular velocity for each sensor agent
 
 itheta=zeros(N,max_step); %location 

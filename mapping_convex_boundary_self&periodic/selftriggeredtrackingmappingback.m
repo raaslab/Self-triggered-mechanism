@@ -1,7 +1,8 @@
 N=6; %the number of sensor agents 
 T=0.1; % sampling period
-max_step=100;
+max_step=800;
 omega_max=1; %maximum angular velocity for each sensor agent
+error_mat = zeros(1, max_step);
 delta=0.06;
 
 px=zeros(N,max_step);
@@ -15,8 +16,8 @@ Con=zeros(N,max_step); % convergence speed
 gVimid=zeros(N,max_step); %the midepoint of i's guaranteed Voronoi set
 u=zeros(N,max_step);
 
-
-itheta(:,1)=round(sort(360*rand(N,1)));% initial locations of six sensor agents, counterclosewise order
+itheta(:,1)=[69.8979;75.0730;83.1024;108.1016;170.1016;303.8982];
+%itheta(:,1)=round(sort(360*rand(N,1)));% initial locations of six sensor agents, counterclosewise order
 %temptheta=round(sort(360*rand(N,1)));
 %itheta(:,1)=temptheta;
 
@@ -60,12 +61,18 @@ for i=1:N
     [px(i,2),py(i,2)]=angulartopositionfun(itheta(i,2),Tar(1,1),Tar(2,1));
      %itheta(i,2)=itheta(i,1)+1/4*T*(theta(i+2,1)-2*theta(i+1,1)+theta(i,1));% at the initial step, agent knows the exact info. of its meihhbors.
      gVimid(i,1)=1/4*(theta(i+2,1)+2*theta(i+1,1)+theta(i,1));
+     Con(i,1)=abs(itheta(i,1)-gVimid(i,1));
 end
 theta(:,2)=[(itheta(N,2)-360);itheta(:,2);(itheta(1,2)+360)];
 
 C=zeros(N,max_step);%communication record;
 C(:,1)=1;
 count=ones(N,1);
+
+%Set up the movie.
+writerObj = VideoWriter('self_static_tracking.avi'); % Name it.
+writerObj.FrameRate = 60; % How many frames per second.
+open(writerObj); 
 
 for k=2: max_step
    
@@ -74,7 +81,7 @@ for k=2: max_step
           ubdi=omega_max*T*count(i)/2; %upper bound
           r=omega_max*T*count(i); % the prediciton range of neighbors' motion
           gVimid(i,k)=1/4*(R(2*i,k)+2*itheta(i,k)+R(2*i-1,k)); % the midepoint of i's guaranteed Voronoi set 
-          
+          Con(i,k)=abs(itheta(i,k)-gVimid(i,k));
           
           errp=gVimid(i,k)-itheta(i,k); 
           abserrp=abs(gVimid(i,k)-itheta(i,k));
@@ -113,7 +120,10 @@ for k=2: max_step
     theta(:,k+1)=[(itheta(N,k+1)-360);itheta(:,k+1);(itheta(1,k+1)+360)];
     
     % Plot the robots
-    subplot(1,2,1)
+    subplot(2,2,1)
+   
+    xlabel({'$$x$$'},'Interpreter','latex','fontsize',14)
+    ylabel({'$$y$$'},'Interpreter','latex','fontsize',14)
      cla; hold on; axis equal
     th = 0 : 0.1 : 2*pi;
     cx = cos(th); cy = sin(th);
@@ -126,7 +136,10 @@ for k=2: max_step
     end
     pause(0.01);
     
-     subplot(1,2,2)
+ subplot(2,2,2)
+ %title('Polygon','fontsize',12)
+    xlabel({'$$x$$'},'Interpreter','latex','fontsize',14)
+    ylabel({'$$y$$'},'Interpreter','latex','fontsize',14)
 % figure(2); 
 cla; hold on;axis equal
 %plot the boundary
@@ -163,17 +176,43 @@ plot(4,20,'*'), hold on
     end
     pause(0.01);
     
+  
+    subplot(2,2,[3,4])
+    title('Self-triggered tracking with a stationary target','fontsize',14)
+    xlabel({'$$k$$'},'Interpreter','latex','fontsize',14)
+    %ylabel({'$$y$$'},'Interpreter','latex','fontsize',14)
+    ylabel('Convererr','fontsize',14)
+%     figure(1); 
+    
+    %cla;
+ % axis equal
+  %  plot(1000,0);
+    cla;hold on;
+    plot(800, 65);
+    hold on;
+    
+    plot(800, 0);
+    hold on;
+    error_mat(1,k) = sum(Con(:,k));
+    plot(2:k, error_mat(:,2:k),'r');
+    
+    %if mod(i,4)==0, % Uncomment to take 1 out of every 4 frames.
+        frame = getframe(gcf); % 'gcf' can handle if you zoom in to take a movie.
+        writeVideo(writerObj, frame);
+    %end
+    
  end
+hold  off
+close(writerObj); % Saves the movie.
 
-
-for k=1:max_step
-for i=1:N
-    phi(i,k)=theta(i+1,k)-theta(i,k);
-    P(i,k)=C(i,k)*log10(10^(0.1+abs(theta(i+1,k)-theta(i,k)))+10^(0.1+abs(theta(i+2,k)-theta(i+1,k))));
-    %Con(i,k)=abs(phi(i,k)-360/N);
-    Con(i,k)=abs(itheta(i,k)-gVimid(i,k));
-end 
-end
+% for k=1:max_step
+% for i=1:N
+%     phi(i,k)=theta(i+1,k)-theta(i,k);
+%     P(i,k)=C(i,k)*log10(10^(0.1+abs(theta(i+1,k)-theta(i,k)))+10^(0.1+abs(theta(i+2,k)-theta(i+1,k))));
+%     %Con(i,k)=abs(phi(i,k)-360/N);
+%     Con(i,k)=abs(itheta(i,k)-gVimid(i,k));
+% end 
+% end
 
 % for i=1:N
 %     %plot(itheta(i,:)),hold on

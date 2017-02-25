@@ -1,6 +1,6 @@
 N=6; %the number of sensor agents
 T=0.1; % sampling period
-max_step=800;
+max_step=1300;
 omega_max=1; %maximum angular velocity for each sensor agent
 
 %cross point of the boundary
@@ -37,8 +37,8 @@ Vimid=zeros(N,max_step); %the midepoint of i's Voronoi set
 
 
 %itheta(:,1)=[20;60;80;130;200;250;278;290;311;330];
-%itheta(:,1)=[20;80;130;200;250;330];% initial locations of six sensor agents, counterclosewise order
-itheta(:,1)=round(sort(360*rand(N,1)));
+itheta(:,1)=[69.8979;75.0730;83.1024;108.1016;170.1016;303.8982];% initial locations of six sensor agents, counterclosewise order
+%itheta(:,1)=round(sort(360*rand(N,1)));
 theta(:,1)=[(itheta(N,1)-360);itheta(:,1);(itheta(1,1)+360)];
 % % set the initial point on the line y=2x+1
 % px(:,1)=sort(P(1,1) + (Q(1,1)-P(1,1)).*rand(N,1));
@@ -106,6 +106,9 @@ for k=1:max_step
     %//////////
     %subplot(1,2,2)
     %figure(2);
+    title('Periodic tracking employing a centralized EKF','fontsize',14)
+    xlabel({'$$x$$'},'Interpreter','latex','fontsize',14)
+    ylabel({'$$y$$'},'Interpreter','latex','fontsize',14)
     cla; hold on;axis equal
     %plot the boundary
     x1=3:0.1:8;

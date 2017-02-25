@@ -1,6 +1,6 @@
 N=6; %the number of sensor agents 
 T=0.1; % sampling period
-max_step=800;
+max_step=1300;
 omega_max=1; %maximum angular velocity for each sensor agent
 
 
@@ -34,8 +34,8 @@ Con=zeros(N,max_step); % convergence speed
 Vimid=zeros(N,max_step); %the midepoint of i's Voronoi set 
 
 %itheta(:,1)=[20;60;80;130;200;250;278;290;311;330];
-%itheta(:,1)=[20;80;130;200;250;330];% initial locations of six sensor agents, counterclosewise order
-itheta(:,1)=round(sort(360*rand(N,1)));
+itheta(:,1)=[69.8979;75.0730;83.1024;108.1016;170.1016;303.8982];% initial locations of six sensor agents, counterclosewise order
+%itheta(:,1)=round(sort(360*rand(N,1)));
 theta(:,1)=[itheta(N,1);itheta(:,1);itheta(1,1)]; %virtual agent 0th:=agent N-2pi;virtual agent 7th:=agent 1st+ 2pi
 
 % % set the initial point on the line y=2x+1
@@ -56,6 +56,11 @@ head_py_tail(:,1)=[py(N,1);py(:,1);py(1,1)];
 % [tarx_hat(1,2), tary_hat(1,2), Sigma_hat(1:2, (2*2-1):2*2), tarxtrue(1,1), tarytrue(1,1)]=KF (...
 %     4, 20, Sigma_hat(1:2,1:2), px(:,1), py(:,1), 1);
 % theta(:,1)=[(itheta(N,1)-360);itheta(:,1);(itheta(1,1)+360)]; %virtual agent 0th:=agent N-2pi;virtual agent 7th:=agent 1st+ 2pi
+
+%Set up the movie.
+writerObj = VideoWriter('periKFdecen.avi'); % Name it.
+writerObj.FrameRate = 60; % How many frames per second.
+open(writerObj); 
 
 for k=1:max_step
     
@@ -101,6 +106,9 @@ itheta(i,k+1)=positiontoangularfun((py(i,k+1)-tary_hat(i,k+1)),(px(i,k+1)-tarx_h
 %%%%%%///////////----------------------------------------------------
 %%subplot(1,2,2)
 % figure(2); 
+title('Periodic tracking employing a decentralized EKF','fontsize',14)
+    xlabel({'$$x$$'},'Interpreter','latex','fontsize',14)
+    ylabel({'$$y$$'},'Interpreter','latex','fontsize',14)
 cla; hold on;axis equal
 %plot the boundary
 x1=3:0.1:8;
@@ -140,8 +148,14 @@ hold on
   end
     pause(0.01);
 %%%%%%%%////////--------------------------------------------------
+%if mod(i,4)==0, % Uncomment to take 1 out of every 4 frames.
+        frame = getframe(gcf); % 'gcf' can handle if you zoom in to take a movie.
+        writeVideo(writerObj, frame);
+    %end
 
 end
+hold  off
+close(writerObj); % Saves the movie.
 % 
 % for k=1:max_step
 % for i=1:N

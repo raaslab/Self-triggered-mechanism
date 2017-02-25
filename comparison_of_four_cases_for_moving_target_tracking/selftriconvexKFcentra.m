@@ -1,6 +1,6 @@
 N=6; %the number of sensor agents 
 T=0.1; % sampling period
-max_step=2000;
+max_step=1300;
 omega_max=1; %maximum angular velocity for each sensor agent
 delta=0.06;
 
@@ -31,8 +31,8 @@ Con=zeros(N,max_step); % convergence speed
 gVimid=zeros(N,max_step); %the midepoint of i's guaranteed Voronoi set
 u=zeros(N,max_step);
 
-
-itheta(:,1)=round(sort(360*rand(N,1)));% initial locations of six sensor agents, counterclosewise order
+itheta(:,1)=[69.8979;75.0730;83.1024;108.1016;170.1016;303.8982];
+%itheta(:,1)=round(sort(360*rand(N,1)));% initial locations of six sensor agents, counterclosewise order
 theta(:,1)=[(itheta(N,1)-360);itheta(:,1);(itheta(1,1)+360)]; %virtual agent 0th:=agent N-2pi;virtual agent 7th:=agent 1st+ 2pi
 %temptheta=round(sort(360*rand(N,1)));
 %itheta(:,1)=temptheta;
@@ -92,6 +92,11 @@ theta(:,2)=[(itheta(N,2)-360);itheta(:,2);(itheta(1,2)+360)];
 C=zeros(N,max_step);%communication record;
 C(:,1)=1;
 count=ones(N,1);
+
+%Set up the movie.
+writerObj = VideoWriter('selfKFcentra.avi'); % Name it.
+writerObj.FrameRate = 60; % How many frames per second.
+open(writerObj); 
 
 for k=2: max_step
    [tarx_hat(1,k+1), tary_hat(1,k+1), Sigma_hat(1:2, (2*(k+1)-1):(2*(k+1))), tarxtrue(1,k), tarytrue(1,k)] = KF (...
@@ -162,6 +167,9 @@ tarx_hat(1,k), tary_hat(1,k), Sigma_hat(1:2,(2*k-1): 2*k), px(:,k), py(:,k),id, 
 %      subplot(1,2,2)
 %%%//////*********************************
 % figure(2); 
+title('Self-triggered tracking employing a centralized EKF','fontsize',14)
+    xlabel({'$$x$$'},'Interpreter','latex','fontsize',14)
+    ylabel({'$$y$$'},'Interpreter','latex','fontsize',14)
 cla; hold on;axis equal
 %plot the boundary
 x1=3:0.1:8;
@@ -203,7 +211,13 @@ hold on
     end
     pause(0.01);
  %///************************************************************   
- end
+ %if mod(i,4)==0, % Uncomment to take 1 out of every 4 frames.
+        frame = getframe(gcf); % 'gcf' can handle if you zoom in to take a movie.
+        writeVideo(writerObj, frame);
+    %end
+end
+hold  off
+close(writerObj); % Saves the movie.
 
 
 for k=1:max_step

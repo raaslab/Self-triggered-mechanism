@@ -1,10 +1,10 @@
 function [convtime,selfcomessage,consumswitch,consumabsu,sumwongdir] = selffun(N,initheta,convthresh)
 %function [convtime,sumctime] = selffun(N,initheta,convthresh)
 %N=6; %the number of sensor agents 
-T=0.1; % sampling period
-max_step=1600;
+T=0.5; % sampling period
+max_step=2000;
 omega_max=1; %maximum angular velocity for each sensor agent
-delta=0.06;
+delta=0.1;
 
 
 itheta=zeros(N,max_step); %locations of all agents at all timesteps 

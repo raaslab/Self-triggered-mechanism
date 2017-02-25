@@ -9,9 +9,10 @@ perKFcenconver=periconvexKFcentrafun(N,initheta,maxstep);
 perKFdisconver=periconvexKFdistrifun(N,initheta,maxstep);
 
 selfKFcenconver=selfconvexKFcentrafun(N,initheta,maxstep);
-selfKFdisconver=selfconvexKFdistrifun(N,initheta,maxstep);
+%selfKFdisconver=selfconvexKFdistrifun(N,initheta,maxstep);
 
 selfKFdisconver2=selfKFdistri2fun(N,initheta,maxstep);
+%selfKFdiscond=selfKFdiscondfun(N,initheta,maxstep);
 
 %figure; hold on;
 plot(sum(perKFcenconver)); 

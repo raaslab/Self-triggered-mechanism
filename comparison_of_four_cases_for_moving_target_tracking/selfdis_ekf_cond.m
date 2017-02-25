@@ -1,12 +1,15 @@
 N=6; %the number of sensor agents 
 T=0.1; % sampling period
-max_step=1300;
+max_step=2000;
 omega_max=1; %maximum angular velocity for each sensor agent
 delta=0.06;
+cond_tolerance=1;
 
 px=zeros(N,max_step);
 py=zeros(N,max_step);
-
+pairx=zeros(N,max_step);
+pairy=zeros(N,max_step);
+pairid=zeros(N,max_step);
 %considering the head and the tail, we enlarge the state 
 %head_px_tail=zeros(N+2, max_step);
 %head_py_tail=zeros(N+2, max_step);
@@ -63,6 +66,10 @@ R=zeros(2*N, max_step); %information agent keeps for its neighbors /angular
 pxstore=zeros(3*N, max_step);%information of x agent keeps for its neighbors /position
 pystore=zeros(3*N, max_step);%information of y agent keeps for its neighbors /position
 for i=1:N
+    %calculate the best pair for each robot at the first time step
+    
+    [pairx(i,1),pairy(i,1),pairid(i,1)]=censer_condpair(N,px(i,1),py(i,1),px,py,tarx_hat(i,1),tary_hat(i,1));
+    
     
     %just store the info at last step
     R(2*i-1:2*i,2)=[theta(i,1);(theta(i+2,1))];
@@ -80,7 +87,7 @@ for i=1:N
     [px(i,2),py(i,2)]=angulartopositionfun(itheta(i,2),tarx_hat(i,1),tary_hat(i,1));
      %itheta(i,2)=itheta(i,1)+1/4*T*(theta(i+2,1)-2*theta(i+1,1)+theta(i,1));% at the initial step, agent knows the exact info. of its meihhbors.
     [tarx_hat(i,2), tary_hat(i,2), Sigma_hat((2*i-1):2*i, (2*2-1):2*2), tarxtrue(1,1), tarytrue(1,1)]=KF (...
-    4, 20, Sigma_hat((2*i-1):2*i,1:2), head_px_tail(i:(i+2),1), head_py_tail(i:(i+2),1), idb(i:(i+2)), 1);
+    tarx_hat(i,1),tary_hat(i,1), Sigma_hat((2*i-1):2*i,1:2), head_px_tail(i:(i+2),1), head_py_tail(i:(i+2),1), idb(i:(i+2)), 1);
   %the orientation based on the target at current step
    itheta(i,2)=positiontoangularfun((py(i,2)-tary_hat(i,2)),(px(i,2)-tarx_hat(i,2)));       
 
@@ -95,10 +102,10 @@ C=zeros(N,max_step);%communication record;
 C(:,1)=1;
 count=ones(N,1);
 
-%Set up the movie.
-writerObj = VideoWriter('selfKFdecen.avi'); % Name it.
-writerObj.FrameRate = 60; % How many frames per second.
-open(writerObj); 
+% %Set up the movie.
+% writerObj = VideoWriter('selfKFdecen.avi'); % Name it.
+% writerObj.FrameRate = 60; % How many frames per second.
+% open(writerObj); 
 
 for k=2: max_step
    %[tarx_hat(1,k+1), tary_hat(1,k+1), Sigma_hat(1:2, (2*(k+1)-1):(2*(k+1))), tarxtrue(1,k), tarytrue(1,k)] = KF (...
@@ -120,6 +127,11 @@ for k=2: max_step
              pxstore((3*i-2):3*i,k+1)=head_px_tail(i:(i+2),k);
              pystore((3*i-2):3*i,k+1)=head_py_tail(i:(i+2),k);
              
+             %pairx(i,1),pairy(i,1),pairid(i,1)
+             pairx(i,k)=pairx(i,k-1);
+             pairy(i,k)=pairy(i,k-1);
+             pairid(i,k)=pairid(i,k-1);
+             
              C(i,k)=1;%if couumicaiton occurs, set the flag 1
              count(i)=1; % reset the number of omega*T
            
@@ -138,6 +150,16 @@ tarx_hat(i,k), tary_hat(i,k), Sigma_hat((2*i-1):2*i,(2*k-1): 2*k), pxstore((3*i-
           else
               
              R(2*i-1:2*i,k+1)=R(2*i-1:2*i,k); %keep memory
+             
+             % the central server decide when to update the best pair
+             if  condobserva(tarx_hat(i,k), tary_hat(i,k), pairx(i,k-1),pairy(i,k-1),px(i,k),py(i,k))>cond_tolerance
+                 % choose the best pair
+                 [pairx(i,k),pairy(i,k),pairid(i,k)]=censer_condpair(N,px(i,k),py(i,k),px(:,k),py(:,k),tarx_hat(i,k),tary_hat(i,k));
+             else %keep still
+                 pairx(i,k)=pairx(i,k-1);
+                 pairy(i,k)=pairy(i,k-1);
+                 pairid(i,k)=pairid(i,k-1);
+             end
              %agent knows info about itself, but keeps the info of its neighbors 
              %we should give the best prediciton about the future state of
              %its neighbors, it is the map from set to fixed point, so its
@@ -147,7 +169,7 @@ tarx_hat(i,k), tary_hat(i,k), Sigma_hat((2*i-1):2*i,(2*k-1): 2*k), pxstore((3*i-
 %              [tarx_hat(i,k+1), tary_hat(i,k+1), Sigma_hat((2*i-1):2*i, (2*(k+1)-1):(2*(k+1))), tarxtrue(1,k), tarytrue(1,k)] = KF (...
 % tarx_hat(i,k), tary_hat(i,k), Sigma_hat((2*i-1):2*i,(2*k-1): 2*k), pxstore((3*i-2):3*i,k+1), pystore((3*i-2):3*i,k+1), k);
               [tarx_hat(i,k+1), tary_hat(i,k+1), Sigma_hat((2*i-1):2*i, (2*(k+1)-1):(2*(k+1))), tarxtrue(1,k), tarytrue(1,k)] = KF (...
-tarx_hat(i,k), tary_hat(i,k), Sigma_hat((2*i-1):2*i,(2*k-1): 2*k), px(i,k), py(i,k), id(i), k);
+tarx_hat(i,k), tary_hat(i,k), Sigma_hat((2*i-1):2*i,(2*k-1): 2*k), [px(i,k);pairx(i,k)], [py(i,k);pairy(i,k)], [id(i),pairid(i,k)], k);
              
              count(i)=count(i)+1;
              
@@ -191,6 +213,7 @@ tarx_hat(i,k), tary_hat(i,k), Sigma_hat((2*i-1):2*i,(2*k-1): 2*k), px(i,k), py(i
 % figure(2); 
 
 %//****************************************************
+figure(1);
 title('Self-triggered tracking employing a decentralized EKF','fontsize',14)
     xlabel({'$$x$$'},'Interpreter','latex','fontsize',14)
     ylabel({'$$y$$'},'Interpreter','latex','fontsize',14)
@@ -234,35 +257,23 @@ hold on
        h(5)=plot ([px(i,k) tarx_hat(i,k)], [py(i,k) tary_hat(i,k)],':');
     end
     pause(0.01);
- %%//***********************************************************   
- %if mod(i,4)==0, % Uncomment to take 1 out of every 4 frames.
-        frame = getframe(gcf); % 'gcf' can handle if you zoom in to take a movie.
-        writeVideo(writerObj, frame);
-    %end
+%  %%//***********************************************************   
+%  %if mod(i,4)==0, % Uncomment to take 1 out of every 4 frames.
+%         frame = getframe(gcf); % 'gcf' can handle if you zoom in to take a movie.
+%         writeVideo(writerObj, frame);
+%     %end
 end
-hold  off
-close(writerObj); % Saves the movie.
 
 
+figure(2);
 for k=1:max_step
 for i=1:N
-    phi(i,k)=theta(i+1,k)-theta(i,k);
-    P(i,k)=C(i,k)*log10(10^(0.1+abs(theta(i+1,k)-theta(i,k)))+10^(0.1+abs(theta(i+2,k)-theta(i+1,k))));
+    %phi(i,k)=theta(i+1,k)-theta(i,k);
+    %P(i,k)=C(i,k)*log10(10^(0.1+abs(theta(i+1,k)-theta(i,k)))+10^(0.1+abs(theta(i+2,k)-theta(i+1,k))));
     %Con(i,k)=abs(phi(i,k)-360/N);
     Con(i,k)=abs(itheta(i,k)-gVimid(i,k));
 end 
 end
-
-% for i=1:N
-%     %plot(itheta(i,:)),hold on
-%     %plot(phi(i,:)), hold on
-%     plot(C(i,:)), hold on
-% end
-
-%plot(sum(P)),hold on
-%plot(sum(Con)), hold on
-
-% figure; hold on;
-% for i = 1 : N
-% A=find(C(i,:)>0);plot(A,i*ones(length(A)),'ro')
-% end
+% hold  off
+% close(writerObj); % Saves the movie.
+plot(sum(Con)),hold on

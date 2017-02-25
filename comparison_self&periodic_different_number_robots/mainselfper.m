@@ -2,7 +2,7 @@ clear all;      % clears all variables in your workspace
 min_num_robots  = 3;
 max_num_robots = 30;
 num_trials = 30;
-convthresh = 0.2;
+convthresh = 0.1;
 
 for N = min_num_robots : max_num_robots
     for i = 1  : num_trials
